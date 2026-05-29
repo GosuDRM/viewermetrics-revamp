@@ -2,6 +2,37 @@
 
 All notable changes to the Viewer Metrics Chrome Extension will be documented in this file.
 
+## 🆕 What's New in 2.0.0
+
+**This is a major overhaul focused on security, reliability, and polish.** Here are the highlights:
+
+### 🛡️ Security Hardening
+All user-controlled data (channel names, usernames, descriptions, profile images) is now escaped before rendering — **12 XSS vulnerabilities** and a **GraphQL injection** vector have been eliminated.
+
+### 🧮 Bot Detection Fixes
+- **Decimal settings no longer truncated** — thresholds like 0.05 and 0.10 now save correctly (was silently broken by `parseInt`)
+- **Heatmap time tracking data preserved** — viewer deletion in 4 cleanup paths now archives data before removing, so heatmaps stay accurate
+- **Authenticated count fixed** — `isAuthenticated` was always `true` due to `||` vs `??` bug
+
+### 📊 Cleaner UI
+- No more **"NaNh NaNm NaNs"** in duration displays
+- No more **"Invalid Date"** for missing timestamps
+- No more **negative percentages** in bot stats
+- No more **"undefined"** in number/byte formatting
+
+### ♿ Accessibility
+Viewer rows and month filter items now support **keyboard navigation** (Tab, Enter, Space). Retention bar has proper **ARIA attributes**.
+
+### ⚡ Performance
+- **Returning viewers skip re-fetching** — user info cache reduces API calls on long streams
+- **Heatmap tick rendering** upgraded from O(n*m) to O(1) lookup
+- **Background intervals tightened** — cleanup 10s, status 10s, health 15s
+
+### 🔧 Reliability
+All manager classes now have proper **destroy() lifecycle methods** — event listeners, subscriptions, and timers are cleaned up correctly. No more leaked observers or zombie callbacks.
+
+---
+
 ## [2.0.0] - 2026-05-29
 ### 🔐 Security
 - Fixed 12 XSS vulnerabilities across the entire UI layer — all innerHTML injections now use DOMUtils.escapeHtml() for user-controlled data (channel names, usernames, descriptions, profile images, following lists, month/day stats)
