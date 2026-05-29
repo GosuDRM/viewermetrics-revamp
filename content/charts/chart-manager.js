@@ -21,13 +21,11 @@ window.ChartManager = class ChartManager {
     this.pendingUpdate = false;
     this.updateTimer = null;
 
-    // Subscribe to data changes
-    this.dataManager.subscribe((event, data) => {
+    this._dataUnsubscribe = this.dataManager.subscribe((event, data) => {
       this.handleDataChange(event, data);
     });
 
-    // Subscribe to config changes
-    this.settingsManager.subscribe((config) => {
+    this._settingsUnsubscribe = this.settingsManager.subscribe((config) => {
       this.handleConfigChange(config);
     });
   }
@@ -158,7 +156,7 @@ window.ChartManager = class ChartManager {
       // Schedule an update for when the throttle period expires
       const delay = this.chartUpdateThrottle - (now - this.lastChartUpdate);
 
-      setTimeout(() => {
+      this._creationUpdateTimer = setTimeout(() => {
         this.updateCreationChart();
       }, delay);
     }
@@ -245,11 +243,14 @@ window.ChartManager = class ChartManager {
     // If viewers dropped to 0 and we haven't started a timer yet
     if (currentViewers === 0 && this.lastViewerCount > 0 && !this.autoPauseTimer && !this.isPaused) {
       this.autoPauseTimer = setTimeout(async () => {
-        if (!this.isPaused) {
-          await this.pauseGraphs();
-          // Dispatch event to update UI
-          const event = new CustomEvent('tvm-graphs-auto-stopped');
-          document.dispatchEvent(event);
+        try {
+          if (!this.isPaused) {
+            await this.pauseGraphs();
+            const event = new CustomEvent('tvm-graphs-auto-stopped');
+            document.dispatchEvent(event);
+          }
+        } catch (err) {
+          this.errorHandler?.handle(err, 'ChartManager Auto-Pause');
         }
       }, config.autoPauseDelay);
     }
@@ -264,6 +265,19 @@ window.ChartManager = class ChartManager {
   }
 
   destroy() {
+    if (this._dataUnsubscribe) {
+      this._dataUnsubscribe();
+      this._dataUnsubscribe = null;
+    }
+    if (this._settingsUnsubscribe) {
+      this._settingsUnsubscribe();
+      this._settingsUnsubscribe = null;
+    }
+    if (this._creationUpdateTimer) {
+      clearTimeout(this._creationUpdateTimer);
+      this._creationUpdateTimer = null;
+    }
+
     // Clean up throttling timer
     if (this.updateTimer) {
       clearTimeout(this.updateTimer);

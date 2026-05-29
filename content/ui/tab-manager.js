@@ -7,14 +7,17 @@ window.TabManager = class TabManager {
 
   setupTabListeners() {
     try {
+      this._tabListeners = [];
       const tabs = document.querySelectorAll('.tvm-tab');
       tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
+        const handler = (e) => {
           const tabName = e.target.dataset.tab;
           if (tabName) {
             this.switchTab(tabName);
           }
-        });
+        };
+        tab.addEventListener('click', handler);
+        this._tabListeners.push({ element: tab, handler });
       });
     } catch (error) {
       this.errorHandler?.handle(error, 'TabManager Setup Tab Listeners');
@@ -72,5 +75,14 @@ window.TabManager = class TabManager {
 
   getActiveTab() {
     return this.activeTab;
+  }
+
+  destroy() {
+    if (this._tabListeners) {
+      for (const { element, handler } of this._tabListeners) {
+        element.removeEventListener('click', handler);
+      }
+      this._tabListeners = null;
+    }
   }
 }

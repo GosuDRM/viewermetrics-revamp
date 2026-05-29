@@ -203,10 +203,14 @@ class ViewerDetailManager {
 
         this.panelElement.classList.add('tvm-panel-hiding');
 
-        setTimeout(() => {
+        if (this._hidePanelTimer) {
+            clearTimeout(this._hidePanelTimer);
+        }
+        this._hidePanelTimer = setTimeout(() => {
             this.panelElement.classList.remove('tvm-panel-visible', 'tvm-panel-hiding');
-            this.panelElement.style.display = 'none'; // Add inline display: none back
+            this.panelElement.style.display = 'none';
             this.currentUsername = null;
+            this._hidePanelTimer = null;
         }, ViewerDetailManager.PANEL_ANIMATION_DURATION);
     }
 
@@ -303,6 +307,10 @@ class ViewerDetailManager {
     }
 
     destroy() {
+        if (this._hidePanelTimer) {
+            clearTimeout(this._hidePanelTimer);
+            this._hidePanelTimer = null;
+        }
         this.hideViewerPanel();
         this.cleanupPanelHandlers();
         this.currentViewer = null;

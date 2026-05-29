@@ -5,6 +5,7 @@ window.SettingsUI = class SettingsUI {
         this.stats = statsManager;
         this.api = apiClient;
         this.errorHandler = errorHandler;
+        this._listeners = [];
     }
 
     // Load all settings into UI form
@@ -186,7 +187,10 @@ window.SettingsUI = class SettingsUI {
     // Helper: Add event listener
     addListener(id, event, handler) {
         const el = document.getElementById(id);
-        if (el) el.addEventListener(event, handler);
+        if (el) {
+            el.addEventListener(event, handler);
+            this._listeners.push({ element: el, event, handler });
+        }
     }
 
     // Helper: Show button feedback
@@ -212,5 +216,12 @@ window.SettingsUI = class SettingsUI {
         if (this.errorHandler) {
             this.errorHandler.handle(error, `SettingsUI: ${context}`);
         }
+    }
+
+    destroy() {
+        for (const { element, event, handler } of this._listeners) {
+            element.removeEventListener(event, handler);
+        }
+        this._listeners = [];
     }
 }
