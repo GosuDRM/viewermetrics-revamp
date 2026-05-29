@@ -184,6 +184,7 @@ window.EnhancedDataManager = class DataManager {
       if (!this.isAnalysisMode) {
         for (const [username, viewer] of this.state.viewers) {
           if (viewer.lastSeen && (currentTime - viewer.lastSeen > inactivityThreshold)) {
+            this.archiveViewerTimeData(username, viewer);
             this.state.viewers.delete(username);
             this.pendingUserInfo.delete(username);
             inactiveCount++;
@@ -208,6 +209,11 @@ window.EnhancedDataManager = class DataManager {
           .sort((a, b) => b[1].lastSeen - a[1].lastSeen)
           .slice(0, targetSize);
 
+        const removedViewers = Array.from(this.state.viewers.entries())
+          .filter(([username]) => !sorted.some(([s]) => s === username));
+        for (const [username, viewer] of removedViewers) {
+          this.archiveViewerTimeData(username, viewer);
+        }
         this.state.viewers = new Map(sorted);
 
         // Clean pending info for removed viewers
@@ -226,6 +232,11 @@ window.EnhancedDataManager = class DataManager {
           .sort((a, b) => b[1].lastSeen - a[1].lastSeen)
           .slice(0, config.maxViewerListSize);
 
+        const removedViewers2 = Array.from(this.state.viewers.entries())
+          .filter(([username]) => !sorted.some(([s]) => s === username));
+        for (const [username, viewer] of removedViewers2) {
+          this.archiveViewerTimeData(username, viewer);
+        }
         this.state.viewers = new Map(sorted);
 
         // Clean pending info for removed viewers
@@ -365,7 +376,7 @@ window.EnhancedDataManager = class DataManager {
       firstSeen: viewer.firstSeen,
       lastSeen: viewer.lastSeen,
       timeInStream: viewer.timeInStream || 0,
-      isAuthenticated: viewer.isAuthenticated || true,
+      isAuthenticated: viewer.isAuthenticated ?? true,
       createdAt: viewer.createdAt || null,
       id: viewer.id || null,
       hasPendingInfo: !viewer.createdAt && !viewer.id,
@@ -455,7 +466,7 @@ window.EnhancedDataManager = class DataManager {
             // Update existing viewer
             existingViewer.lastSeen = viewer.lastSeen;
             existingViewer.timeInStream = viewer.timeInStream || existingViewer.timeInStream;
-            existingViewer.isAuthenticated = viewer.isAuthenticated || existingViewer.isAuthenticated;
+            existingViewer.isAuthenticated = viewer.isAuthenticated ?? existingViewer.isAuthenticated;
 
             // Update user info if available
             if (viewer.createdAt && !existingViewer.createdAt) {
@@ -554,6 +565,7 @@ window.EnhancedDataManager = class DataManager {
           } else {
             // Re-add to pending for retry (with delay handled in getPendingUsernames)
             viewer.hasPendingInfo = true;
+            this.pendingUserInfo.add(username);
           }
         }
 
@@ -1167,7 +1179,7 @@ window.EnhancedDataManager = class DataManager {
   getStats() {
     try {
       const viewers = Array.from(this.state.viewers.values());
-      const authenticatedNonBots = this.state.metadata.authenticatedCount - (this.state.metadata.botsDetected || 0);
+      const authenticatedNonBots = (this.state.metadata.authenticatedCount || 0) - (this.state.metadata.botsDetected || 0);
       const bots = this.state.metadata.botsDetected || 0;
 
       // Get pending count based on tracking mode
@@ -1602,6 +1614,7 @@ window.EnhancedDataManager = class DataManager {
 
       for (const [username, viewer] of this.state.viewers.entries()) {
         if (viewer.lastSeen < cutoff) {
+          this.archiveViewerTimeData(username, viewer);
           this.state.viewers.delete(username);
           this.pendingUserInfo.delete(username);
           removed++;

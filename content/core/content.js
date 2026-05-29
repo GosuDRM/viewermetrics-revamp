@@ -133,7 +133,7 @@ class TwitchViewerMetrics {
   watchForNavigation() {
     let lastChannel = this.channelName;
 
-    new MutationObserver(() => {
+    this._navigationObserver = new MutationObserver(() => {
       const oldChannel = lastChannel;
       this.detectChannel();
 
@@ -142,7 +142,8 @@ class TwitchViewerMetrics {
         lastChannel = this.channelName;
         this.injectSimpleUI(); // Re-inject for new channel
       }
-    }).observe(document, { subtree: true, childList: true });
+    });
+    this._navigationObserver.observe(document, { subtree: true, childList: true });
   }
 
   async waitForElement(selector, timeout = 10000) {

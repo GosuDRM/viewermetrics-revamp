@@ -187,6 +187,7 @@ window.BackgroundApiClient = class BackgroundTrackingClient {
       return; // Update for different channel
     }
 
+    if (!message.data) return;
     const { data } = message;
 
     switch (data.type) {
@@ -222,7 +223,7 @@ window.BackgroundApiClient = class BackgroundTrackingClient {
     // Notify observers
     this.notify('viewersUpdated', {
       total: this.trackingData.viewers.size,
-      new: data.newUsers.length,
+      new: data.newUsers?.length || 0,
       authenticatedCount: data.authenticatedCount,
       viewers: Array.from(this.trackingData.viewers.values()) // Pass the actual viewer data
     });
@@ -243,6 +244,7 @@ window.BackgroundApiClient = class BackgroundTrackingClient {
 
   handleUserInfoUpdate(data) {
     // Update viewers with user info
+    if (!data.userInfo) return;
     for (const info of data.userInfo) {
       if (this.trackingData.viewers.has(info.username)) {
         const viewer = this.trackingData.viewers.get(info.username);
@@ -295,29 +297,39 @@ window.BackgroundApiClient = class BackgroundTrackingClient {
 
   syncTrackingData(data) {
     this.trackingData.viewers.clear();
-    for (const viewer of data.viewers) {
-      this.trackingData.viewers.set(viewer.username, viewer);
+    if (data.viewers) {
+      for (const viewer of data.viewers) {
+        this.trackingData.viewers.set(viewer.username, viewer);
+      }
     }
-    this.trackingData.history = data.history;
-    this.trackingData.metadata = data.metadata;
+    this.trackingData.history = data.history || [];
+    this.trackingData.metadata = data.metadata || this.trackingData.metadata;
   }
 
   async getUserInfo(channelName, usernames, priority = 3) {
-    return chrome.runtime.sendMessage({
-      type: 'GET_USER_INFO',
-      channelName,
-      usernames,
-      priority
-    });
+    try {
+      return await chrome.runtime.sendMessage({
+        type: 'GET_USER_INFO',
+        channelName,
+        usernames,
+        priority
+      });
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
   async getUserFollowing(usernames, options = {}, priority = 3) {
-    return chrome.runtime.sendMessage({
-      type: 'GET_USER_FOLLOWING',
-      usernames,
-      options,
-      priority
-    });
+    try {
+      return await chrome.runtime.sendMessage({
+        type: 'GET_USER_FOLLOWING',
+        usernames,
+        options,
+        priority
+      });
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
   getRateLimitStatus() {
@@ -330,23 +342,35 @@ window.BackgroundApiClient = class BackgroundTrackingClient {
   }
 
   async getAuthStatus() {
-    return chrome.runtime.sendMessage({
-      type: 'GET_AUTH_STATUS'
-    });
+    try {
+      return await chrome.runtime.sendMessage({
+        type: 'GET_AUTH_STATUS'
+      });
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
   async updateApiConfig(config) {
-    return chrome.runtime.sendMessage({
-      type: 'UPDATE_API_CONFIG',
-      config
-    });
+    try {
+      return await chrome.runtime.sendMessage({
+        type: 'UPDATE_API_CONFIG',
+        config
+      });
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
   async forceStartTracking(channelName) {
-    return chrome.runtime.sendMessage({
-      type: 'FORCE_START_TRACKING',
-      channelName
-    });
+    try {
+      return await chrome.runtime.sendMessage({
+        type: 'FORCE_START_TRACKING',
+        channelName
+      });
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
   // Getters for compatibility

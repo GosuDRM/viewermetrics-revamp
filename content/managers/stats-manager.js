@@ -49,7 +49,7 @@ window.StatsManager = class StatsManager {
           authenticatedNonBots = Math.max(0, accountsWithDates - bots);
         } else {
           // Normal mode: authenticatedNonBots = totalAuthenticated - bots
-          authenticatedNonBots = fixedAuthenticatedCount - bots;
+          authenticatedNonBots = Math.max(0, fixedAuthenticatedCount - bots);
         }
         const authenticatedNonBotsPercentage = fixedAuthenticatedCount > 0
           ? this.formatPercentageFloor((authenticatedNonBots / fixedAuthenticatedCount) * 100)
@@ -138,7 +138,7 @@ window.StatsManager = class StatsManager {
             authenticatedNonBots = Math.max(0, (historyPoint.accountsWithDates || 0) - historyPoint.bots);
           } else {
             // Normal mode: authenticatedNonBots = totalAuthenticated - bots
-            authenticatedNonBots = fixedAuthenticatedCount - historyPoint.bots;
+            authenticatedNonBots = Math.max(0, fixedAuthenticatedCount - historyPoint.bots);
           }
           const authenticatedNonBotsPercentage = fixedAuthenticatedCount > 0
             ? this.formatPercentageFloor((authenticatedNonBots / fixedAuthenticatedCount) * 100)

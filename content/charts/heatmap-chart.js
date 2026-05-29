@@ -178,12 +178,13 @@ window.HeatmapChart = class HeatmapChart {
 
         if (!slider || !label) return;
 
-        slider.addEventListener('input', (e) => {
+        this._summarySkipHandler = (e) => {
             const value = parseInt(e.target.value);
             this.summarySkipMinutes = value;
             label.textContent = `After ${value}m`;
             this.updateStreamStats();
-        });
+        };
+        slider.addEventListener('input', this._summarySkipHandler);
     }
 
     update() {
@@ -284,23 +285,25 @@ window.HeatmapChart = class HeatmapChart {
             // Update y-axis to show actual time values
             // Create custom ticks at the actual time value positions
             const customTicks = allTimes.map((time, i) => {
-                // Calculate position: sum of all previous segments, plus half of current segment
-                let position = i * groupingInterval + (groupingInterval / 2);
-                return position;
+                return i * groupingInterval + (groupingInterval / 2);
             });
 
+            const tickPositionMap = new Map();
+            for (let i = 0; i < customTicks.length; i++) {
+                tickPositionMap.set(Math.round(customTicks[i] * 100), i);
+            }
+
             this.chart.options.scales.y.ticks.callback = function (value, index, ticks) {
-                // Find which time value this tick represents
-                for (let i = 0; i < customTicks.length; i++) {
-                    if (Math.abs(value - customTicks[i]) < 0.01) {
-                        const time = allTimes[i];
-                        if (time >= 60) {
-                            const hours = Math.floor(time / 60);
-                            const mins = time % 60;
-                            return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-                        }
-                        return `${time}m`;
+                const key = Math.round(value * 100);
+                const i = tickPositionMap.get(key);
+                if (i !== undefined) {
+                    const time = allTimes[i];
+                    if (time >= 60) {
+                        const hours = Math.floor(time / 60);
+                        const mins = time % 60;
+                        return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
                     }
+                    return `${time}m`;
                 }
                 return '';
             };
@@ -448,7 +451,8 @@ window.HeatmapChart = class HeatmapChart {
             html = '<div style="color: #adadb8; text-align: center;">No data</div>';
         } else {
             // Find max value for scaling bars (excluding 0 values)
-            const maxViewers = Math.max(...bucketArray.filter(([_, count]) => count > 0).map(([_, count]) => count));
+            const filtered = bucketArray.filter(([_, count]) => count > 0).map(([_, count]) => count);
+            const maxViewers = filtered.length > 0 ? Math.max(...filtered) : 0;
 
             for (const [time, count] of bucketArray) {
                 const percentage = count > 0 && maxViewers > 0 ? (count / maxViewers) * 100 : 0;
@@ -519,7 +523,7 @@ window.HeatmapChart = class HeatmapChart {
                 <div style="margin-bottom: 6px; font-size: 12px; color: #adadb8;">Users (${totalAuthenticated.toLocaleString()} total)</div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="font-size: 11px; color: #adadb8; white-space: nowrap;">&lt;${retentionThresholdMinutes}m</div>
-                    <div class="tvm-retention-bar-container">
+                    <div class="tvm-retention-bar-container" role="progressbar" aria-valuenow="${overPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="User retention above ${retentionThresholdMinutes} minutes">
                         <div class="tvm-retention-bar-under" style="width: ${underPercent}%;" title="${underThresholdCount.toLocaleString()} users (${underPercent}%)"></div>
                         <div class="tvm-retention-bar-over" style="width: ${overPercent}%;" title="${overThresholdCount.toLocaleString()} users (${overPercent}%)"></div>
                     </div>
@@ -541,10 +545,10 @@ window.HeatmapChart = class HeatmapChart {
             if (slider) {
                 slider.addEventListener('input', (e) => {
                     const sliderValue = parseInt(e.target.value);
-                    // Map slider position to fixed values: 0=5min, 1=10min, 2=20min
                     const thresholdValue = sliderValue === 0 ? 5 : sliderValue === 1 ? 10 : 20;
                     this.retentionThresholdMinutes = thresholdValue;
-                    this.update(); // Re-render with new threshold
+                    if (this._retentionDebounceTimer) clearTimeout(this._retentionDebounceTimer);
+                    this._retentionDebounceTimer = setTimeout(() => this.update(), 150);
                 });
             }
         }
@@ -818,7 +822,8 @@ window.HeatmapChart = class HeatmapChart {
         }
 
         // Find max value for scaling bars (excluding 0 values)
-        const maxViewers = Math.max(...bucketArray.filter(([_, count]) => count > 0).map(([_, count]) => count));
+        const filtered = bucketArray.filter(([_, count]) => count > 0).map(([_, count]) => count);
+        const maxViewers = filtered.length > 0 ? Math.max(...filtered) : 0;
 
         // Generate HTML for bot stats (using red colors)
         let html = '';
@@ -902,10 +907,10 @@ window.HeatmapChart = class HeatmapChart {
         if (slider) {
             slider.addEventListener('input', (e) => {
                 const sliderValue = parseInt(e.target.value);
-                // Map slider position to fixed values: 0=5min, 1=10min, 2=20min
                 const thresholdValue = sliderValue === 0 ? 5 : sliderValue === 1 ? 10 : 20;
                 this.retentionThresholdMinutes = thresholdValue;
-                this.update(); // Re-render with new threshold
+                if (this._retentionDebounceTimer) clearTimeout(this._retentionDebounceTimer);
+                this._retentionDebounceTimer = setTimeout(() => this.update(), 150);
             });
         }
     }
@@ -922,6 +927,15 @@ window.HeatmapChart = class HeatmapChart {
     }
 
     destroy() {
+        if (this._retentionDebounceTimer) {
+            clearTimeout(this._retentionDebounceTimer);
+            this._retentionDebounceTimer = null;
+        }
+        if (this._summarySkipHandler) {
+            const slider = document.getElementById('tvm-summary-skip-slider');
+            if (slider) slider.removeEventListener('input', this._summarySkipHandler);
+            this._summarySkipHandler = null;
+        }
         if (this.chart) {
             this.chart.destroy();
             this.chart = null;

@@ -295,16 +295,6 @@ window.CreationChart = class CreationChart {
     }
   }
 
-  updateStats() {
-    try {
-      const statsElement = document.getElementById('tvm-creation-stats');
-      if (!statsElement) return;
-
-    } catch (error) {
-      this.errorHandler?.handle(error, 'CreationChart Update Stats');
-    }
-  }
-
   updateYAxisTitle() {
     try {
       if (!this.chart) return;
@@ -391,7 +381,8 @@ window.CreationChart = class CreationChart {
 
       // Calculate percentage of accounts in 2018-2024 vs total
       const percentage = Math.round((accountsFrom2020 / accountsWithDates) * 100);
-      const percentageWithoutBots = Math.round((accountsFrom2020WithoutBots / (accountsWithDates - botsDetected)) * 100);
+      const denominatorWithoutBots = accountsWithDates - botsDetected;
+      const percentageWithoutBots = denominatorWithoutBots > 0 ? Math.round((accountsFrom2020WithoutBots / denominatorWithoutBots) * 100) : 0;
       if (percentage !== percentageWithoutBots) {
         percentageElement.textContent = `${percentage}% (${percentageWithoutBots}%)`;
       } else {

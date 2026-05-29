@@ -316,7 +316,7 @@ window.SettingsManager = class SettingsManager {
 
             switch (schema.type) {
                 case 'number':
-                    cleanValue = parseInt(value);
+                    cleanValue = parseFloat(value);
                     if (isNaN(cleanValue)) {
                         console.warn(`Invalid number for ${key}, using default`);
                         cleanValue = schema.default;
@@ -365,7 +365,7 @@ window.SettingsManager = class SettingsManager {
 
         // Type check
         if (schema.type === 'number') {
-            const num = parseInt(value);
+            const num = parseFloat(value);
             if (isNaN(num)) return { valid: false, error: 'Must be a number' };
             if (schema.min !== undefined && num < schema.min) {
                 return { valid: false, error: `Must be at least ${schema.min}` };

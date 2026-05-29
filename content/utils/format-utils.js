@@ -52,6 +52,7 @@ window.FormatUtils = class FormatUtils {
   }
 
   static formatNumber(num) {
+    if (num == null || isNaN(num)) return '0';
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M';
     } else if (num >= 1000) {
@@ -61,6 +62,7 @@ window.FormatUtils = class FormatUtils {
   }
 
   static formatBytes(bytes) {
+    if (bytes == null || isNaN(bytes)) return '0 B';
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
