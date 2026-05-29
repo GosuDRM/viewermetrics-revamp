@@ -4,6 +4,19 @@ A Chrome extension that tracks and analyzes Twitch stream viewers with bot detec
 
 ![Viewer Metrics Screenshot](assets/screenshot1.png)
 
+## 🆕 What's New in 2.0.0
+
+**Major overhaul focused on security, reliability, and polish.**
+
+- 🛡️ **Security** — 12 XSS vulnerabilities and a GraphQL injection vector eliminated
+- 🧮 **Bot detection** — decimal settings no longer truncated, heatmap data preserved on cleanup, `isAuthenticated` bug fixed
+- 📊 **Cleaner UI** — no more "NaNh NaNm NaNs", "Invalid Date", negative percentages, or "undefined" displays
+- ♿ **Accessibility** — keyboard navigation on viewer rows and filters, ARIA attributes on retention bar
+- ⚡ **Performance** — returning viewers skip re-fetching, heatmap O(1) rendering, tighter polling intervals
+- 🔧 **Reliability** — all manager classes have proper destroy() lifecycle, no more leaked observers
+
+**72 fixes across 28 files.** See the [changelog](CHANGELOG.md) for full details.
+
 ## 📦 Installation
 
 1. Download the [latest release](https://github.com/GosuDRM/viewermetrics-revamp/releases/tag/v2.0.0) or clone this repository

@@ -31,6 +31,8 @@ Viewer rows and month filter items now support **keyboard navigation** (Tab, Ent
 ### 🔧 Reliability
 All manager classes now have proper **destroy() lifecycle methods** — event listeners, subscriptions, and timers are cleaned up correctly. No more leaked observers or zombie callbacks.
 
+**72 fixes across 28 files.** See the [full changelog](#200---2026-05-29) below for the complete list.
+
 ---
 
 ## [2.0.0] - 2026-05-29
