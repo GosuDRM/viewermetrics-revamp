@@ -252,7 +252,8 @@ class BackgroundService {
             viewerListConcurrentCalls: sessionConfig.viewerListConcurrentCallsInitial,
             recentNewUserCounts: []
           },
-          pendingUserInfo: new Set()
+          pendingUserInfo: new Set(),
+          userInfoCache: new Map()
         },
         // Request locks to prevent concurrent requests
         requestLocks: {
@@ -369,17 +370,17 @@ class BackgroundService {
       // Cleanup timed out viewers
       session.intervals.set('cleanup', setInterval(() => {
         this.backgroundCleanupViewers(session);
-      }, 15000)); // Every 15 seconds for responsive timeout removal
+      }, 10000));
 
       // API status updates
       session.intervals.set('apiStatus', setInterval(async () => {
         await this.sendApiStatusUpdate(session);
-      }, 5000)); // Every 5 seconds
+      }, 10000));
 
       // Session health check - verify tab is still reachable
       session.intervals.set('healthCheck', setInterval(async () => {
         await this.checkSessionHealth(session);
-      }, 10000)); // Every 10 seconds
+      }, 15000));
 
       console.log(`Background intervals setup for ${channelName}`);
 
@@ -423,15 +424,19 @@ class BackgroundService {
         // Process current viewer list
         for (const username of viewerData.viewers) {
           if (!session.data.viewers.has(username)) {
+            const cached = session.data.userInfoCache.get(username);
             session.data.viewers.set(username, {
               username,
               firstSeen: timestamp,
               lastSeen: timestamp,
               timeInStream: 0,
-              isAuthenticated: true
+              isAuthenticated: true,
+              ...(cached || {})
             });
             newUsers.push(username);
-            session.data.pendingUserInfo.add(username);
+            if (!cached) {
+              session.data.pendingUserInfo.add(username);
+            }
           } else {
             // Update existing viewer
             const viewer = session.data.viewers.get(username);
@@ -729,13 +734,15 @@ class BackgroundService {
   }
 
   async updateViewersWithUserInfo(session, userInfo) {
-    // Update viewer data with user info
     for (const info of userInfo) {
       if (info && session.data.viewers.has(info.username)) {
         const viewer = session.data.viewers.get(info.username);
         viewer.createdAt = info.createdAt;
         viewer.id = info.id;
-        // Add any other fields from getUserInfo
+        session.data.userInfoCache.set(info.username, {
+          createdAt: info.createdAt,
+          id: info.id
+        });
       }
     }
 
