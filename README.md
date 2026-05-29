@@ -1,12 +1,12 @@
-# Viewer Metrics Chrome Extension
+# 🎮 Viewer Metrics Revamp
 
-A Chrome extension that tracks and analyzes stream viewers with bot detection capabilities.
+A Chrome extension that tracks and analyzes Twitch stream viewers with bot detection capabilities. This is a community fork of the original Viewer Metrics, with a major security, reliability, and accessibility overhaul.
 
 ![Viewer Metrics Screenshot](assets/screenshot1.png)
 
-## 🚀 Installation
+## 📦 Installation
 
-1. Download the [latest release](https://github.com/viewermetrics/viewermetrics/releases/tag/v0.9.951) or clone this repository
+1. Download the [latest release](https://github.com/GosuDRM/viewermetrics-revamp/releases/tag/v2.0.0) or clone this repository
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" (toggle in top right)
 4. Click "Load unpacked" and select the project folder
@@ -22,10 +22,13 @@ A Chrome extension that tracks and analyzes stream viewers with bot detection ca
 - Visual charts show legitimate vs. bot account distribution
 - Searchable list of all tracked viewers with profile details
 - Auto-adjusts request rates based on stream size
+- Cached user info for returning viewers — fewer API calls on long streams
+- Multi-format data export (CSV, XML, SQL, JSON)
+- Session save/load with analysis mode for historical review
 
-## Usage
+## 🚀 Usage
 
-1. **Navigate to a Channel**: Go to any channel page
+1. **Navigate to a Channel**: Go to any Twitch channel page
 
 2. **Start Tracking**: 
    - The extension UI will appear below the stream
@@ -36,10 +39,9 @@ A Chrome extension that tracks and analyzes stream viewers with bot detection ca
    - **Graph**: Displays viewer trends over time (updates every minute)
    - **Viewer List**: Searchable, paginated list of all tracked viewers
 
-## How It Works
+## 🔍 How It Works
 
-
-### Viewer Tracking
+### 👥 Viewer Tracking
 1. Fetches the viewer list at configurable intervals (default: 5 seconds)
 2. Tracks first seen and last seen timestamps for each viewer
 3. Removes viewers who haven't been seen for 5 minutes (configurable)
@@ -52,12 +54,12 @@ A Chrome extension that tracks and analyzes stream viewers with bot detection ca
 - **Automatic Classification**: Accounts created during spike periods are flagged as potential bots, ignoring half the baseline as real users
 - **False Positive Removal**: Only a final bot percentage above 10% is shown
 
-## Data Storage
+## 💾 Data Storage
 
 - **Local Storage**: Configuration settings (persists across sessions)
 - **Memory Only**: Viewer data (not persisted, cleared when tracking stops)
 
-## Privacy & Security
+## 🔒 Privacy & Security
 
 - All data is stored locally in your browser
 - No data is sent to external servers
@@ -65,10 +67,10 @@ A Chrome extension that tracks and analyzes stream viewers with bot detection ca
 - The only outgoing requests are to the site itself
 - Viewer data is cleared when tracking stops or browser closes
 
-## License
+## 📄 License
 
 This extension is provided as-is for educational and personal use.
 
-## Contributing
+## 🤝 Contributing
 
 Feel free to submit issues or pull requests for improvements.
