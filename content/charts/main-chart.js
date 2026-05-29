@@ -535,14 +535,13 @@ window.MainChart = class MainChart {
 
     // Calculate max value and set y-axis max to one step above the highest value
     if (history.length > 0) {
-      const maxValue = Math.max(
-        ...history.map(h => Math.max(
-          h.totalViewers,
-          h.authenticatedNonBots || 0,
-          h.bots || 0,
-          h.totalAuthenticated || 0
-        ))
-      );
+      const maxValue = history.reduce((max, h) => Math.max(
+        max,
+        h.totalViewers,
+        h.authenticatedNonBots || 0,
+        h.bots || 0,
+        h.totalAuthenticated || 0
+      ), 0);
 
       if (maxValue > 0) {
         // Calculate a nice step size based on the max value
