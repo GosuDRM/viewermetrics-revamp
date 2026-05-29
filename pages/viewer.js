@@ -146,7 +146,7 @@ class ViewerPageManager {
           <div class="tvm-loading-spinner"></div>
           <h2>Please Wait</h2>
           <p>Another viewer page is currently loading data.</p>
-          <p>Loading: <strong>${lock.username}</strong></p>
+          <p>Loading: <strong>${DOMUtils.escapeHtml(lock.username)}</strong></p>
           <p class="tvm-waiting-note">This prevents overloading servers with multiple concurrent requests.</p>
           <p class="tvm-waiting-timeout">Will proceed automatically if the other page doesn't finish within 10 seconds.</p>
           <button id="tvm-waiting-close" class="tvm-btn tvm-btn-secondary">Close This Tab</button>
@@ -195,25 +195,24 @@ class ViewerPageManager {
   }
 
   setupEventListeners() {
-    // Close tab button
-    document.getElementById('tvm-close-btn').addEventListener('click', async () => {
+    const closeBtn = document.getElementById('tvm-close-btn');
+    if (closeBtn) closeBtn.addEventListener('click', async () => {
       await this.releaseLoadingLock();
       window.close();
     });
 
-    // Search functionality
-    document.getElementById('tvm-search').addEventListener('input', (e) => {
+    const search = document.getElementById('tvm-search');
+    if (search) search.addEventListener('input', (e) => {
       this.filterData(e.target.value);
     });
 
-    // Sort functionality
-    document.getElementById('tvm-sort').addEventListener('change', (e) => {
+    const sort = document.getElementById('tvm-sort');
+    if (sort) sort.addEventListener('change', (e) => {
       this.sortData(e.target.value);
     });
 
-    // Following grid click handler - Use event delegation to avoid multiple handlers
     const grid = document.getElementById('tvm-following-grid');
-    grid.addEventListener('click', (e) => {
+    if (grid) grid.addEventListener('click', (e) => {
       const item = e.target.closest('.tvm-following-item[data-twitch-login]');
       if (item) {
         const login = item.getAttribute('data-twitch-login');
@@ -224,12 +223,12 @@ class ViewerPageManager {
     });
 
     // Cleanup on page unload
-    window.addEventListener('beforeunload', async () => {
-      await this.releaseLoadingLock();
+    window.addEventListener('beforeunload', () => {
+      this.releaseLoadingLock();
     });
 
-    window.addEventListener('unload', async () => {
-      await this.releaseLoadingLock();
+    window.addEventListener('unload', () => {
+      this.releaseLoadingLock();
     });
   }
 
@@ -251,9 +250,9 @@ class ViewerPageManager {
     document.getElementById('tvm-stat-created').textContent = data.createdAt ?
       new Date(data.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Unknown';
     document.getElementById('tvm-stat-first-seen').textContent =
-      new Date(data.firstSeen).toLocaleString();
+      data.firstSeen ? new Date(data.firstSeen).toLocaleString() : 'Unknown';
     document.getElementById('tvm-stat-last-seen').textContent =
-      new Date(data.lastSeen).toLocaleString();
+      data.lastSeen ? new Date(data.lastSeen).toLocaleString() : 'Unknown';
 
     // Calculate time in stream
     const timeInStream = this.formatDuration(Date.now() - data.firstSeen);
@@ -446,7 +445,7 @@ class ViewerPageManager {
         followDateTime.toLocaleTimeString();
 
       // Avatar with loading state
-      const avatarUrl = user.profileImageURL || user.profile_image_url ||
+      const avatarUrl = DOMUtils.escapeHtml(user.profileImageURL || user.profile_image_url) ||
         'https://static-cdn.jtvnw.net/user-default-pictures-uv/41780b5a-def8-11e9-94d9-784f43822e80-profile_image-300x300.png';
 
       // Creation date with loading state
@@ -459,13 +458,13 @@ class ViewerPageManager {
 
       item.innerHTML = `
         <div class="tvm-following-avatar">
-          <img src="${avatarUrl}" alt="${username}" class="tvm-following-user-avatar" 
+          <img src="${avatarUrl}" alt="${DOMUtils.escapeHtml(username)}" class="tvm-following-user-avatar" 
                style="${!user.profileImageURL ? 'opacity: 0.5;' : ''}">
           ${!user.profileImageURL ? '<div class="tvm-avatar-loading"></div>' : ''}
           ${isStreaming ? '<div class="tvm-streaming-indicator" title="Currently Live"></div>' : ''}
         </div>
         <div class="tvm-following-info">
-          <div class="tvm-following-name">${username}</div>
+          <div class="tvm-following-name">${DOMUtils.escapeHtml(username)}</div>
           <div class="tvm-following-date">${followDate}</div>
           <div class="tvm-following-created ${!user.createdAt ? 'loading' : ''}">Created: ${createdDate}</div>
         </div>
@@ -473,7 +472,7 @@ class ViewerPageManager {
 
       // Store login in data attribute for event delegation
       item.style.cursor = 'pointer';
-      item.setAttribute('data-twitch-login', login);
+      item.setAttribute('data-twitch-login', DOMUtils.escapeHtml(login));
 
       grid.appendChild(item);
     });
@@ -482,24 +481,34 @@ class ViewerPageManager {
   }
 
   showLoading() {
-    document.getElementById('tvm-loading').style.display = 'block';
-    document.getElementById('tvm-error').style.display = 'none';
-    document.getElementById('tvm-following-grid').style.display = 'none';
+    const loading = document.getElementById('tvm-loading');
+    if (loading) loading.style.display = 'block';
+    const error = document.getElementById('tvm-error');
+    if (error) error.style.display = 'none';
+    const grid = document.getElementById('tvm-following-grid');
+    if (grid) grid.style.display = 'none';
   }
 
   hideLoading() {
-    document.getElementById('tvm-loading').style.display = 'none';
+    const loading = document.getElementById('tvm-loading');
+    if (loading) loading.style.display = 'none';
   }
 
   showError(message) {
-    document.getElementById('tvm-error-text').textContent = message;
-    document.getElementById('tvm-error').style.display = 'block';
-    document.getElementById('tvm-loading').style.display = 'none';
-    document.getElementById('tvm-following-grid').style.display = 'none';
-    document.getElementById('tvm-pagination').style.display = 'none';
+    const errorText = document.getElementById('tvm-error-text');
+    if (errorText) errorText.textContent = message;
+    const error = document.getElementById('tvm-error');
+    if (error) error.style.display = 'block';
+    const loading = document.getElementById('tvm-loading');
+    if (loading) loading.style.display = 'none';
+    const grid = document.getElementById('tvm-following-grid');
+    if (grid) grid.style.display = 'none';
+    const pagination = document.getElementById('tvm-pagination');
+    if (pagination) pagination.style.display = 'none';
   }
 
   formatDuration(milliseconds) {
+    if (!milliseconds || isNaN(milliseconds) || milliseconds < 0) return '0s';
     const seconds = Math.floor(milliseconds / 1000);
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);

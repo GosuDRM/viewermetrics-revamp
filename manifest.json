@@ -22,6 +22,7 @@
         "*://*.twitch.tv/*"
       ],
       "js": [
+        "content/utils/dom-utils.js",
         "content/core/settings-manager.js",
         "content/core/error-handler.js",
         "content/ui/html-templates.js",

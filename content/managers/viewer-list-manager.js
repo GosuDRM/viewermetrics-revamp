@@ -115,20 +115,29 @@ window.ViewerListManager = class ViewerListManager {
       const accountCount = viewer.accountsOnSameDay > 0 ? viewer.accountsOnSameDay : '';
 
       // Avatar image
-      const avatarUrl = viewer.profileImageURL || 'https://static-cdn.jtvnw.net/user-default-pictures-uv/41780b5a-def8-11e9-94d9-784f43822e80-profile_image-300x300.png';
+      const avatarUrl = DOMUtils.escapeHtml(viewer.profileImageURL) || 'https://static-cdn.jtvnw.net/user-default-pictures-uv/41780b5a-def8-11e9-94d9-784f43822e80-profile_image-300x300.png';
 
       // Bio text (let CSS handle truncation)
-      const bioText = viewer.description || '';
+      const bioText = DOMUtils.escapeHtml(viewer.description) || '';
 
       const row = document.createElement('tr');
       row.classList.add('tvm-username-clickable');
       row.setAttribute('data-username', viewer.username);
+      row.setAttribute('tabindex', '0');
+      row.setAttribute('role', 'button');
+      row.setAttribute('aria-label', `View details for ${capitalizedUsername}`);
       row.style.cursor = 'pointer';
+      row.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          row.click();
+        }
+      });
       row.innerHTML = `
           <td style="width: 200px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <img src="${avatarUrl}" alt="${viewer.username}" class="tvm-avatar" style="width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;">
-              <span class="tvm-username-link">${capitalizedUsername}</span> ${statusIcons}
+              <img src="${avatarUrl}" alt="${DOMUtils.escapeHtml(viewer.username)}" class="tvm-avatar" style="width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;">
+              <span class="tvm-username-link">${DOMUtils.escapeHtml(capitalizedUsername)}</span> ${statusIcons}
             </div>
           </td>
           <td style="text-align: right; vertical-align: middle;">${createdDate}</td>
@@ -338,9 +347,9 @@ window.ViewerListManager = class ViewerListManager {
       html += topMonths.map(month => {
         const isActive = dateFilter === month.monthKey ? ' active' : '';
         return `
-          <div class="tvm-bot-item${isActive}" data-month="${month.monthKey}">
-            <span class="tvm-bot-item-label">${month.monthName}</span>
-            <span class="tvm-bot-item-count">${month.count}</span>
+          <div class="tvm-bot-item${isActive}" data-month="${DOMUtils.escapeHtml(month.monthKey)}">
+            <span class="tvm-bot-item-label">${DOMUtils.escapeHtml(month.monthName)}</span>
+            <span class="tvm-bot-item-count">${DOMUtils.escapeHtml(month.count)}</span>
           </div>
         `;
       }).join('');
@@ -358,9 +367,19 @@ window.ViewerListManager = class ViewerListManager {
 
       // Add click handlers for month items
       container.querySelectorAll('.tvm-bot-item[data-month]').forEach(item => {
+        const monthKey = item.getAttribute('data-month');
+        const monthLabel = item.querySelector('.tvm-bot-item-label')?.textContent || monthKey;
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('role', 'button');
+        item.setAttribute('aria-label', `Filter by ${monthLabel}`);
         item.addEventListener('click', () => {
-          const monthKey = item.getAttribute('data-month');
           this.setDateFilter(monthKey);
+        });
+        item.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.setDateFilter(monthKey);
+          }
         });
       });
     } catch (error) {
@@ -383,24 +402,33 @@ window.ViewerListManager = class ViewerListManager {
       const dateFilter = this.currentDateFilter || 'all';
 
       container.innerHTML = topDays.map((day, index) => {
-        // Extract year from dayKey (YYYY-MM-DD format)
         const [year, month, dayNum] = day.dayKey.split('-').map(Number);
         const monthKey = `${year}-${String(month).padStart(2, '0')}`;
         const isActive = dateFilter === monthKey ? ' active' : '';
 
         return `
-          <div class="tvm-bot-item${isActive}" data-month="${monthKey}">
-            <span class="tvm-bot-item-label">${day.dayName}</span>
-            <span class="tvm-bot-item-count">${day.count}</span>
+          <div class="tvm-bot-item${isActive}" data-month="${DOMUtils.escapeHtml(monthKey)}">
+            <span class="tvm-bot-item-label">${DOMUtils.escapeHtml(day.dayName)}</span>
+            <span class="tvm-bot-item-count">${DOMUtils.escapeHtml(day.count)}</span>
           </div>
         `;
       }).join('');
 
       // Add click handlers
       container.querySelectorAll('.tvm-bot-item').forEach(item => {
+        const monthKey = item.getAttribute('data-month');
+        const dayLabel = item.querySelector('.tvm-bot-item-label')?.textContent || monthKey;
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('role', 'button');
+        item.setAttribute('aria-label', `Filter by ${dayLabel}`);
         item.addEventListener('click', () => {
-          const monthKey = item.getAttribute('data-month');
           this.setDateFilter(monthKey);
+        });
+        item.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.setDateFilter(monthKey);
+          }
         });
       });
     } catch (error) {

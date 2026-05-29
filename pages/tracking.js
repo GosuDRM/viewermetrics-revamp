@@ -245,7 +245,7 @@ class TrackingPageManager {
     content.innerHTML = `
       <div style="text-align: center; padding: 40px;">
         <h2>Another tracking page is active</h2>
-        <p>Currently tracking: <strong>${lock.channelName}</strong></p>
+        <p>Currently tracking: <strong>${DOMUtils.escapeHtml(lock.channelName)}</strong></p>
         <p>Close the other tracking page to use this one, or this page will automatically take over when the other closes.</p>
         <div class="tvm-loading-spinner" style="margin: 20px auto;"></div>
         <p style="color: #adadb8; font-size: 14px;">Waiting for other page to close...</p>
@@ -331,8 +331,8 @@ class TrackingPageManager {
     this.setupExportButtons();
 
     // Handle page unload - cleanup only (confirmation handled in setupBeforeUnloadConfirmation)
-    window.addEventListener('unload', async () => {
-      await this.cleanup();
+    window.addEventListener('unload', () => {
+      this.cleanup();
     });
   }
 
@@ -508,10 +508,10 @@ class TrackingPageManager {
   }
 
   setupMessageListeners() {
-    // Listen for messages from content scripts
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    this._messageListener = (message, sender, sendResponse) => {
       this.handleMessage(message, sender, sendResponse);
-    });
+    };
+    chrome.runtime.onMessage.addListener(this._messageListener);
   }
 
   async handleMessage(message, sender, sendResponse) {
@@ -1117,7 +1117,7 @@ class TrackingPageManager {
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     `;
     banner.innerHTML = `
-      📊 ANALYSIS MODE - Viewing Historical Data | Channel: ${channelName} | Exported: ${exportDate}
+      📊 ANALYSIS MODE - Viewing Historical Data | Channel: ${DOMUtils.escapeHtml(channelName)} | Exported: ${DOMUtils.escapeHtml(exportDate)}
     `;
 
     const header = document.querySelector('.tvm-tracking-header');
@@ -1137,6 +1137,11 @@ class TrackingPageManager {
 
   async cleanup() {
     try {
+      if (this._messageListener) {
+        chrome.runtime.onMessage.removeListener(this._messageListener);
+        this._messageListener = null;
+      }
+
       // Stop tracking
       await this.stopTracking();
 

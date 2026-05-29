@@ -13,7 +13,7 @@ window.HTMLTemplates = class HTMLTemplates {
             <div class="tvm-simple-icon">${iconUrl ? `<img src="${iconUrl}" alt="TVM" style="width: 48px; height: 48px;">` : '📊'}</div>
             <div>
               <div class="tvm-simple-title">Viewer Metrics</div>
-              <div class="tvm-simple-subtitle">Track and analyze viewers for ${channelName}</div>
+              <div class="tvm-simple-subtitle">Track and analyze viewers for ${DOMUtils.escapeHtml(channelName)}</div>
             </div>
           </div>
           <button id="tvm-start-tracking" class="tvm-btn tvm-btn-primary">
@@ -37,7 +37,7 @@ window.HTMLTemplates = class HTMLTemplates {
     const capitalizedUsername = FormatUtils.capitalizeUsername(username);
     return `
       <div class="tvm-panel-error">
-        <p>Failed to load data for ${capitalizedUsername}</p>
+        <p>Failed to load data for ${DOMUtils.escapeHtml(capitalizedUsername)}</p>
         <p style="font-size: 12px; margin-top: 10px; color: #adadb8;">Click the username in the viewer list to retry</p>
       </div>
     `;
@@ -65,9 +65,9 @@ window.HTMLTemplates = class HTMLTemplates {
 
     return `
       <div class="tvm-user-profile" style="margin-bottom: 15px;">
-        <img src="${profileImage}" alt="${capitalizedUsername}" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #2e2e35;">
+        <img src="${DOMUtils.escapeHtml(profileImage)}" alt="${DOMUtils.escapeHtml(capitalizedUsername)}" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #2e2e35;">
         <div style="margin-top: 10px; font-size: 13px; line-height: 1.6;">
-          <strong>ID:</strong> ${viewer.id || 'Unknown'}<br>
+          <strong>ID:</strong> ${DOMUtils.escapeHtml(viewer.id) || 'Unknown'}<br>
           <strong>Created:</strong> ${createdDate}<br>
           <strong>Accounts Same Day:</strong> ${viewer.accountsOnSameDay}<br>
           ${viewer.followingCount !== undefined ? `<strong>Following Count:</strong> ${viewer.followingCount}<br>` : ''}
@@ -81,7 +81,7 @@ window.HTMLTemplates = class HTMLTemplates {
       ${description !== 'No description available' ? `
         <div class="tvm-user-description" style="margin-bottom: 15px; padding: 12px; background: #1f1f23; border-radius: 4px; border-left: 3px solid #9147ff;">
           <strong style="font-size: 13px;">Description:</strong><br>
-          <div class="tvm-description-text" style="margin-top: 6px; font-style: italic; color: #adadb8; font-size: 12px; line-height: 1.5;">${description}</div>
+          <div class="tvm-description-text" style="margin-top: 6px; font-style: italic; color: #adadb8; font-size: 12px; line-height: 1.5;">${DOMUtils.escapeHtml(description)}</div>
         </div>
       ` : ''}
 
@@ -112,7 +112,7 @@ window.HTMLTemplates = class HTMLTemplates {
 
   static generateFollowingList(followingList, error, isPartialList = false) {
     if (error) {
-      return `<div class="tvm-error">Error loading following data: ${error}</div>`;
+      return `<div class="tvm-error">Error loading following data: ${DOMUtils.escapeHtml(error)}</div>`;
     }
 
     if (followingList.length === 0) {
@@ -134,9 +134,9 @@ window.HTMLTemplates = class HTMLTemplates {
       const avatarUrl = follow.user.profileImageURL || 'https://static-cdn.jtvnw.net/user-default-pictures-uv/41780b5a-def8-11e9-94d9-784f43822e80-profile_image-300x300.png';
 
       html += `
-        <div class="tvm-following-item" data-login="${follow.user.login}">
-          <img src="${avatarUrl}" alt="${follow.user.displayName}" class="tvm-following-avatar">
-          <div class="tvm-following-name">${follow.user.displayName}</div>
+        <div class="tvm-following-item" data-login="${DOMUtils.escapeHtml(follow.user.login)}">
+          <img src="${DOMUtils.escapeHtml(avatarUrl)}" alt="${DOMUtils.escapeHtml(follow.user.displayName)}" class="tvm-following-avatar">
+          <div class="tvm-following-name">${DOMUtils.escapeHtml(follow.user.displayName)}</div>
           <div class="tvm-following-date">${followDate}</div>
         </div>
       `;

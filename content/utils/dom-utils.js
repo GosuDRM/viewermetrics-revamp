@@ -42,6 +42,13 @@ window.DOMUtils = class DOMUtils {
     }
   }
 
+  static escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
   static querySelector(selector, parent = document) {
     try {
       return parent.querySelector(selector);

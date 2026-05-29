@@ -168,8 +168,8 @@ export class ApiManager {
 
   async getViewerCount(channelName) {
     const query = `
-      query {
-        user(login: "${channelName}") {
+      query ($login: String!) {
+        user(login: $login) {
           stream {
             viewersCount
           }
@@ -183,9 +183,9 @@ export class ApiManager {
         {
           method: 'POST',
           headers: this.getTwitchHeaders(),
-          body: JSON.stringify({ query })
+          body: JSON.stringify({ query, variables: { login: channelName } })
         },
-        1 // High priority
+        1
       );
 
       return response.data?.user?.stream?.viewersCount || 0;

@@ -21,8 +21,7 @@ window.UIManager = class UIManager {
     // Set tabManager reference for viewerListManager
     this.viewerListManager.tabManager = this.tabManager;
 
-    // Subscribe to data changes
-    this.dataManager.subscribe((event, data) => {
+    this._dataUnsubscribe = this.dataManager.subscribe((event, data) => {
       this.handleDataChange(event, data);
     });
   }
@@ -431,13 +430,13 @@ window.UIManager = class UIManager {
             // Update tracking title to include avatar with better layout
             trackingTitleElement.innerHTML = `
               <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="${avatarUrl}" alt="${channelName}" style="width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;">
+                <img src="${DOMUtils.escapeHtml(avatarUrl)}" alt="${DOMUtils.escapeHtml(channelName)}" style="width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;">
                 <div style="display: flex; flex-direction: column; gap: 4px;">
                   <div style="font-size: 20px; font-weight: 600; color: #efeff1; line-height: 1.2;">
-                    ${userInfo.displayName || channelName}
+                    ${DOMUtils.escapeHtml(userInfo.displayName || channelName)}
                   </div>
                   ${description ? `<div style="font-size: 14px; color: #adadb8; line-height: 1.3; max-width: 1200px; word-wrap: break-word;">
-                    ${description}
+                    ${DOMUtils.escapeHtml(description)}
                   </div>` : ''}
                 </div>
               </div>
@@ -480,6 +479,12 @@ window.UIManager = class UIManager {
       // Clean up viewer detail panel
       if (this.viewerDetailManager) {
         this.viewerDetailManager.destroy();
+      }
+
+      // Clean up data subscription
+      if (this._dataUnsubscribe) {
+        this._dataUnsubscribe();
+        this._dataUnsubscribe = null;
       }
 
       // Clean up event listeners and references
